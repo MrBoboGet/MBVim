@@ -14,10 +14,10 @@ syn region mbdCodeblock start=+^[[:space:]]*```+ end=+^[[:space:]]*```+
 
 let b:current_syntax = "mbd"
 
-hi mbdDirective ctermfg=Magenta
-hi mbdFormat ctermfg=Green
-hi mbdCodeblock ctermfg=Red
-hi mbdReference ctermfg=Blue
+hi mbdDirective ctermfg=Magenta guifg=#ff00ff
+hi mbdFormat ctermfg=Green guifg=#00ff00
+hi mbdCodeblock ctermfg=Red guifg=#ff0000
+hi mbdReference ctermfg=Blue guifg=#0000ff
 
 "hi mbdSubformat ctermfg=
 "hi mbdTopformat ctermfg=Green
