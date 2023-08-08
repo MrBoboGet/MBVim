@@ -12,8 +12,11 @@ endif
 
 let colors_name = "MBScheme"
 
+hi Visual term=reverse ctermbg=8 guibg=DarkGrey
+
 hi MBStatement ctermfg=Magenta
-hi MBNumber ctermfg=Blue
+hi MBNumber ctermfg=Blue guifg=#b4009e 
+hi MBBool ctermfg=Blue guifg=#0000ff
 hi MBString ctermfg=Red guifg=#ff0000
 hi MBFunction ctermfg=LightYellow guifg=#ffff00
 hi MBIdentifier ctermfg=White 
@@ -42,4 +45,6 @@ hi link CocSemEnum CocSemClass
 hi Visual term=reverse ctermbg=8 guibg=DarkGrey
 highlight PMenu ctermbg=Black guibg=#000000
 hi Normal ctermbg=Black guibg=#000000
+
+hi link vimFunction Function
 " vim: sw=2

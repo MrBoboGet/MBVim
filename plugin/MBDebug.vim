@@ -70,6 +70,9 @@ function s:FixedExePath(ExeToCheck)
 endfunction
 
 
+tmap <BS> <char-0x7f>
+
+
 function s:DebugProcess(...) abort
     let ExtraArguments = a:000
     let ProgramPath = s:FixedExePath(ExtraArguments[0])

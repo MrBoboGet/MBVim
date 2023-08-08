@@ -11,7 +11,6 @@ set hidden
 set hlsearch
 set backspace=indent,eol,start
 set updatetime=300
-hi Visual term=reverse ctermbg=8 guibg=DarkGrey
 
 inoremap {<CR> <CR>{<CR> <BS><CR>}<Up><Tab>
 vnoremap <BS> "_
@@ -23,13 +22,8 @@ nnoremap , @@
 
 
 set pastetoggle=<F2>
-colorscheme MBScheme
 set cpoptions+=I
 
-hi CocSemClass ctermfg=green
-hi CocSemEnum ctermfg=green
-hi CocSemNamespace ctermfg=white
-hi cConditional ctermfg=Magenta
 " work around for windows, vim bug
 tnoremap <S-space> <space>
 
@@ -120,3 +114,10 @@ endfunction
 
 command! MBRadio tab term cmd /k mbradio
 set mouse=""
+
+
+nmap <s-f> 5j
+nmap <s-b> 5k
+
+
+colorscheme MBScheme
