@@ -1,10 +1,10 @@
-if exists("b:current_syntax")
-    finish
-endif
+"if exists("b:current_syntax")
+"    finish
+"endif
 
 "123 print test_variabel_123
 syn match mblNumber '\d\+'
-syn region mblString start=+"+  skip=+\\"+  end=+"+
+syn region mblString start=+"+  end=+"+ skip=+\\+  
 syn match mblBool 'true\|false'
 syn match mblBool 'null'
 

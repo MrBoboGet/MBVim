@@ -6,7 +6,7 @@
 "let s:mb_motions = 1
 
 "<c-o> behaves inco
-function s:PasteReturn() abort
+function! s:PasteReturn() abort
     let RegisterValue = nr2char(getchar())
     let ReturnValue = '"' .. RegisterValue
     "echo col(".")
@@ -18,7 +18,7 @@ function s:PasteReturn() abort
     return ReturnValue
 endfunction
 
-function ListLess(LeftList,RightList) abort
+function! ListLess(LeftList,RightList) abort
     let ReturnValue = v:false
     let i = 0
     while(i < len(a:LeftList))
@@ -34,7 +34,7 @@ function ListLess(LeftList,RightList) abort
     return(ReturnValue)
 endfunction
 
-function GetPatternCount(Pattern,BeginPos,EndPos) abort
+function! GetPatternCount(Pattern,BeginPos,EndPos) abort
     let OriginalCursorPosition = getpos(".")
     call setpos(".",[0,a:BeginPos[0],a:BeginPos[1],0])
     let ReturnValue = 0
@@ -63,13 +63,13 @@ function GetPatternCount(Pattern,BeginPos,EndPos) abort
 
 endfunction
 
-function GetNestingDepth(StartPattern,EndPattern,BeginPos,EndPos) abort
+function! GetNestingDepth(StartPattern,EndPattern,BeginPos,EndPos) abort
     let StartCount = GetPatternCount(a:StartPattern,a:BeginPos,a:EndPos)
     let EndCount = GetPatternCount(a:EndPattern,a:BeginPos,a:EndPos)
     return StartCount-EndCount
 endfunction
 
-function SetVisualSelection(PositionList) abort
+function! SetVisualSelection(PositionList) abort
     if(ListLess(a:PositionList[0],getpos("'<")[1:2]))
         call setpos("'<",[0,a:PositionList[0][0],a:PositionList[0][1],0])
         call setpos("'>",[0,a:PositionList[1][0],a:PositionList[1][1],0])
@@ -80,7 +80,7 @@ function SetVisualSelection(PositionList) abort
     normal gv
 endfunction
 
-function ShrinkSelection(PositionList,ShrinkSize = 1) abort
+function! ShrinkSelection(PositionList,ShrinkSize = 1) abort
     let ReturnValue = copy(a:PositionList)
     let ReturnValue[0][1] += a:ShrinkSize
     let ReturnValue[1][1] -= a:ShrinkSize
@@ -90,7 +90,7 @@ endfunction
 
 " asdjkasjkldajkls (asdad,asdasdas,(asdsadasd,asdasda),adasd(asdasd,asdasd))
 "assumes that cursor is at the position to examine
-function GetArgumentPosition(Inner="i")
+function! GetArgumentPosition(Inner="i")
     let ReturnValue = []
     eval ReturnValue->add(searchpos('(\|,',"Wcbn"))
     eval ReturnValue->add(searchpos(')\|,',"Wcn",0,0, {-> GetNestingDepth("(",")",getpos(".")[1:2],ReturnValue[0]) != 0 } ))
@@ -98,12 +98,17 @@ function GetArgumentPosition(Inner="i")
         let ReturnValue[0][1] += 1
         let ReturnValue[1][1] -= 1
     elseif (a:Inner == "a")
-        let StringLine = getline(ReturnValue[0][0])
-        if(StringLine[ReturnValue[0][1]-1] == '(')
+        let LLine = getline(ReturnValue[0][0])
+        let RLine = getline(ReturnValue[1][0])
+        let LChar = LLine[ReturnValue[0][1]-1]
+        let RChar = RLine[ReturnValue[1][1]-1]
+        if(LChar == RChar && LChar == ",")
             let ReturnValue[0][1] += 1
         endif
-        let StringLine = getline(ReturnValue[1][0])
-        if(StringLine[ReturnValue[1][1]-1] == ")")
+        if(LChar == '(')
+            let ReturnValue[0][1] += 1
+        endif
+        if(RChar == ")")
             let ReturnValue[1][1] -= 1
         endif
     endif
@@ -112,17 +117,17 @@ endfunction
 
 "asdasdasd  (asdasd,asdad,asdasd(asdasd,(asdasd,adasd)))
 "assdasda dsa()
-function MakeTextObject(ObjectName,FunctionString) abort
+function! MakeTextObject(ObjectName,FunctionString) abort
     exec "vnoremap " .. a:ObjectName .. " :<c-u>call SetVisualSelection(" .. a:FunctionString .. ")<CR>"
     exec "onoremap " .. a:ObjectName .. " :<c-u>call SetVisualSelection(" .. a:FunctionString .. ")<CR>"
 endfunction
 
-function MakeInnerOuter(ObjectName,FunctionString) abort
+function! MakeInnerOuter(ObjectName,FunctionString) abort
     call MakeTextObject("a" .. a:ObjectName,a:FunctionString .. '("a")')
-    call MakeTextObject("i" .. a:ObjectName,a:FunctionString .. '("i")')")
+    call MakeTextObject("i" .. a:ObjectName,a:FunctionString .. '("i")')
 endfunction
 
-
+"test(123123,"assdasd",asdsasdasds)
 " $asdasdasdasd$
 
 
