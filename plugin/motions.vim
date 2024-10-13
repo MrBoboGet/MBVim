@@ -115,6 +115,7 @@ function! GetArgumentPosition(Inner="i")
     return(ReturnValue)
 endfunction
 
+
 "asdasdasd  (asdasd,asdad,asdasd(asdasd,(asdasd,adasd)))
 "assdasda dsa()
 function! MakeTextObject(ObjectName,FunctionString) abort
@@ -143,6 +144,14 @@ inoremap <c-e> <end>
 inoremap <c-a> <Home>
 inoremap <c-k> <Up>
 inoremap <c-j> <Down>
+inoremap <c-h> <Left>
+inoremap <c-l> <Right>
+cnoremap <c-e> <end>
+cnoremap <c-a> <Home>
+cnoremap <c-k> <Up>
+cnoremap <c-j> <Down>
+cnoremap <c-h> <Left>
+cnoremap <c-l> <Right>
 
 nnoremap g) ])
 nnoremap g( [(
@@ -159,7 +168,7 @@ onoremap ag( :normal vg(<CR>
 
 vnoremap g} ]}
 onoremap g} :normal g}<CR>
-nnoremap ag} :normal vg}<CR>
+onoremap ag} :normal vg}<CR>
 
 vnoremap g{ [{
 onoremap g{ :normal g{l<CR>

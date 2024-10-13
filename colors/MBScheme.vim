@@ -47,4 +47,7 @@ highlight PMenu ctermbg=Black guibg=#000000
 hi Normal ctermbg=Black guibg=#000000
 
 hi link vimFunction Function
+
+
+hi link ConId CocSemMacro
 " vim: sw=2

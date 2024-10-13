@@ -4,7 +4,7 @@
 
 "123 print test_variabel_123
 syn match mblNumber '\d\+'
-syn region mblString start=+"+  end=+"+ skip=+\\+  
+syn region mblString start=+"+  end=+"+ skip=+\\"|\\+  
 syn match mblBool 'true\|false'
 syn match mblBool 'null'
 

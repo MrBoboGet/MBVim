@@ -9,7 +9,7 @@ function! MBExecuteOperator_Normal(Type = '') abort
     call s:MBOpFuncString(getpos("'["),getpos("']"))
 endfunction
     
-function! MBExecuteOperator(FuncName,Mode) abort
+function! MBExecuteOperator(FuncName,Mode) abort range
     let s:MBOpFuncString = funcref(a:FuncName)
     if a:Mode == "n"
         return MBExecuteOperator_Normal()
@@ -42,5 +42,32 @@ function! s:Replace(StartPos,EndPos) abort
     exec 'normal "' .. UsedReg .. 'p'
     call setreg(UsedReg,UsedRegContent)
 endfunction
+
+function! s:Source(StartPos,EndPos) abort
+    let Lines = getline(a:StartPos[1],a:EndPos[1])
+    let TotalText = ""
+    if(Lines->len() > 1)
+        let Lines[0] = Lines[0]->strpart(a:StartPos[2]-1)
+        let Lines[-1] = Lines[-1]->strpart(0,a:EndPos[2])
+    else
+        let Lines[0] = Lines[0]->strpart(a:StartPos[2]-1,a:EndPos[2]-a:StartPos[2]+1)
+    endif
+    if v:true
+        for Line in Lines
+            let TotalText ..= Line .. "\n"
+        endfor
+    endif
+    "Find the terminal in the current window
+    let Windows = map(tabpagenr()->gettabinfo()[0].windows,{i,x -> getwininfo(x)[0] })
+    for Window in Windows
+        if(Window.terminal)
+            let Buf = Window.bufnr
+            call term_sendkeys(Buf,TotalText)
+            break
+        endif
+    endfor
+endfunction
+
 call MBCreateOperator("Q","s:Quote")
 call MBCreateOperator("R","s:Replace")
+call MBCreateOperator("S","s:Source")

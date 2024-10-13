@@ -7,7 +7,8 @@ syn match mbdDirective '^[[:space:]]*%.*'
 syn match mbdFormat '^[[:space:]]*\(_#\|#\|#_\|/_\|/#\).*'
 "syn match mbdReference '@[^[:space:][:punct:]]+\|\([^\]]+\)\?([^)]'
 syn match mbdReference '@\([^[:space:][:punct:]]+\|\(\[[^\]]*\]\)\?(.*)\)'
-syn region mbdCodeblock start=+^[[:space:]]*```+ end=+^[[:space:]]*```+
+"syn region mbdCodeblock start=+^[[:space:]]*```+ end=+^[[:space:]]*```+
+syn match mbdCodeblock '```.*'
 
 "syn region mbdSubformat start=+^\s*_#+ end=+^\s*/#+ contains=mbdSubformat,mbdTopformat
 "syn region mbdTopformat start=+^\s*#_+ end=+^\s*/_+ contains=mbdSubformat,mbdTopformat

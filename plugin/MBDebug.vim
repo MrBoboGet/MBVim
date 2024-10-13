@@ -4,12 +4,44 @@ nmap <c-f> <plug>VimspectorStepOut
 nmap <c-b> <plug>VimspectorToggleBreakpoint
 nmap <c-c> <plug>VimspectorContinue
 
+
+function! s:getLangConfig()
+    let CurrentLang = &filetype
+    if CurrentLang == "mblisp"
+        return #{
+        \    Launch: 
+        \    #{
+        \      adapter: 
+        \       #{
+        \            command: "mblisp C:/Users/emanu/Desktop/Program/C++/MBLisp/Applications/DAP/index.lisp"
+        \       },
+        \      filetypes: [ "mblisp"],
+        \      configuration: 
+        \      #{
+        \      adapter: 
+        \       #{
+        \            command: "mblisp C:/Users/emanu/Desktop/Program/C++/MBLisp/Applications/DAP/index.lisp"
+        \       },
+        \        request: "launch",
+        \        args: [],
+        \        path: expand("%")
+        \      }
+        \}
+        \}
+    endif
+    return #{}
+endfunction
+
 function! s:startDebug()
     set signcolumn=yes
     "VimspectorMkSession 
     "call vimspector#ClearBreakpoints()
     "VimspectorLoadSession  
-    call vimspector#Launch()
+    if getftype(".vimspector") == ""
+        call vimspector#LaunchWithConfigurations(s:getLangConfig())
+    else
+        call vimspector#Launch()
+    endif
 endfunction
 
 function! s:stopDebug()
@@ -20,7 +52,8 @@ endfunction
 nmap <space>d :call <SID>startDebug()<CR>
 nmap <space>D :VimspectorReset<CR>
 nmap <c-x> :call <SID>stopDebug()<CR>
-nmap E <plug>VimspectorBalloonEval
+nmap E viwE
+vmap E <plug>VimspectorBalloonEval
 nmap <c-u> <plug>VimspectorUpFrame
 nmap <c-d> <plug>VimspectorDownFrame
 

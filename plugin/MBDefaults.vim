@@ -44,6 +44,7 @@ nnoremap <Space>f :call CocAction("jumpReferences")<CR>
 "nnoremap <c-k> <Plug>(coc-diagnostic-next-error)
 nnoremap <c-k> :call CocAction('diagnosticPrevious')<cr>
 nnoremap <c-j> :call CocAction('diagnosticNext')<cr>
+nnoremap <c-h> :call CocActionAsync('doHover')<cr>
 
 "Sh stuff
 au BufRead,BufNewFile *.sh set fileformat=unix 
@@ -118,6 +119,9 @@ set mouse=""
 
 nmap <s-f> 5j
 nmap <s-b> 5k
+vmap <s-f> 5j
+vmap <s-b> 5k
+nmap ; @@
 
 
 colorscheme MBScheme
