@@ -43,6 +43,17 @@ function! s:Replace(StartPos,EndPos) abort
     call setreg(UsedReg,UsedRegContent)
 endfunction
 
+function! GetTabTerminal() 
+    let Windows = map(tabpagenr()->gettabinfo()[0].windows,{i,x -> getwininfo(x)[0] })
+    for Window in Windows
+        if(Window.terminal)
+            let Buf = Window.bufnr
+            return Buf
+        endif
+    endfor
+    return v:null
+endfunction
+
 function! s:Source(StartPos,EndPos) abort
     let Lines = getline(a:StartPos[1],a:EndPos[1])
     let TotalText = ""

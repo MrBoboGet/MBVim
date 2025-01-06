@@ -15,3 +15,17 @@ function! LispIndent() abort
     endif
 endfunction
 setl indentexpr=LispIndent()
+
+function! DisplayBuffer()
+    let term_buf = GetTabTerminal()
+    echo "awooga"
+    if term_buf != v:null
+        call term_sendkeys(term_buf,$"MBLisp -m TML.TMLDisplay {expand("%:p:S") }\<Return>")
+        let buf_windows = win_findbuf(term_buf)
+        if len(buf_windows) > 0
+            call win_gotoid(buf_windows[0])
+        endif
+    endif
+endfunction
+
+nnoremap <buffer> <space>v :call DisplayBuffer()<CR>
