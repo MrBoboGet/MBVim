@@ -28,6 +28,30 @@ function! s:getLangConfig()
         \      }
         \}
         \}
+    elseif CurrentLang == "test"
+        return #{
+        \    Launch: 
+        \    #{
+        \      adapter: 
+        \       #{
+        \            command: "debugpy"
+        \       },
+        \      filetypes: [ "python"],
+        \      configuration:  
+        \      #{
+        \         name: "Python: Launch",
+        \         type: "python",
+        \         request: "launch",
+        \         cwd: ".",
+        \         python: "python",
+        \         stopOnEntry: v:true,
+        \         console: "externalTerminal",
+        \         debugOptions: [],
+        \         program: expand("%"),
+        \         args: []
+        \      }
+        \}
+        \}
     endif
     return #{}
 endfunction
