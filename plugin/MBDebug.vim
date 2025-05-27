@@ -5,8 +5,71 @@ nmap <c-b> <plug>VimspectorToggleBreakpoint
 nmap <c-c> <plug>VimspectorContinue
 
 
+let s:launchConfigGetters = {}
+
+function! CppLaunchSettings(path)
+    let dir = fnamemodify(a:path,":h")
+    let path = substitute(simplify(resolve(a:path)),"\\","/","g")
+    while getftype(dir .. "/MBSourceInfo.json") == ""
+        let newDir = fnamemodify(dir,":h")
+        if newDir == dir
+            throw "No MBSourceInfo.json in parent directories"
+        endif
+    endwhile
+    let sourceInfo = readfile(dir .. "/MBSourceInfo.json")->reduce({a,b -> a .. b})->json_decode()
+    let targets = sourceInfo["Targets"]
+    let programName = ""
+    for key in keys(targets)
+        let target = targets[key]
+        if target["TargetType"] != "Executable"
+            continue
+        endif
+        for source in target["Sources"]
+            let absolutePath = substitute(simplify(resolve(fnamemodify(dir .. source,":p"))),"\\","/","g")
+            echo absolutePath
+            echo path
+            if absolutePath == path
+                let programName = target["OutputName"]
+                if windowsversion() != ""
+                    let programName = programName .. ".exe"
+                    break
+                endif
+            endif
+        endfor
+        if programName == ""
+            break
+        endif
+    endfor
+    if programName == ""
+        throw "No target in the source info includes the source file"
+    endif
+    let programPath = dir .. "/MBPM_Builds/Debug/".. programName
+    return #{
+        \         request: "launch",
+        \         cwd: ".",
+        \         stopOnEntry: v:true,
+        \         externalConsole: v:true,
+        \         debugOptions: [],
+        \         program: programPath,
+        \         args: []
+        \      }
+endfunction
+
+function! RegisterLaunchSettingsGetter(fileType,Func)
+    let s:launchConfigGetters[a:fileType] = a:Func
+endfunction
+
+call RegisterLaunchSettingsGetter("cpp",funcref("CppLaunchSettings"))
+
 function! s:getLangConfig()
     let CurrentLang = &filetype
+    let ConfigGetter = ""
+    let launchConfig = #{}
+    if has_key(s:launchConfigGetters,CurrentLang)
+        let ConfigGetter = s:launchConfigGetters[CurrentLang]
+        let launchConfig = ConfigGetter(expand("%:p"))
+        echo launchConfig
+    endif
     if CurrentLang == "mblisp"
         return #{
         \    Launch: 
@@ -28,7 +91,7 @@ function! s:getLangConfig()
         \      }
         \}
         \}
-    elseif CurrentLang == "test"
+    elseif CurrentLang == "python"
         return #{
         \    Launch: 
         \    #{
@@ -50,6 +113,18 @@ function! s:getLangConfig()
         \         program: expand("%"),
         \         args: []
         \      }
+        \}
+        \}
+    elseif CurrentLang == "cpp"
+        return #{
+        \    Launch: 
+        \    #{
+        \      adapter: 
+        \       #{
+        \            command: "lldb-dap.exe"
+        \       },
+        \      filetypes: [ "cpp"],
+        \      configuration:  launchConfig
         \}
         \}
     endif
