@@ -216,7 +216,7 @@ function s:DebugProcess(...) abort
     call vimspector#LaunchWithConfigurations(#{
                 \    Launch: 
                 \    #{
-                \      adapter: "vscode-cpptools",
+                \      adapter: "gdb-dap",
                 \      filetypes: [ "cpp", "c", "objc", "rust" ], 
                 \      configuration: 
                 \      #{
