@@ -136,7 +136,7 @@ function! s:startDebug()
     "VimspectorMkSession 
     "call vimspector#ClearBreakpoints()
     "VimspectorLoadSession  
-    if getftype(".vimspector") == ""
+    if getftype(".vimspector.json") == ""
         call vimspector#LaunchWithConfigurations(s:getLangConfig())
     else
         call vimspector#Launch()
