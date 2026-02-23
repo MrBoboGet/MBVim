@@ -36,6 +36,11 @@ hi CocErrorHighlight guibg=#770000
 hi CocSemMacro guifg=#a600c3
 hi CocSemBoolean guifg=#0000FF
 
+hi CocSemTypeClass guifg=#00ff00
+hi CocSemTypeNamespace  ctermfg=white guifg=white
+hi CocSemTypeMacro guifg=#a600c3
+hi CocSemTypeBoolean guifg=#0000FF
+
 
 hi clear cConditional 
 hi link cConditional Statement
