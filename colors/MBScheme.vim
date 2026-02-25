@@ -26,7 +26,7 @@ hi Type ctermfg=DarkBlue guifg=#0000ff
 hi Statement ctermfg=Magenta guifg=#b4009e
 hi Constant guifg=#b4009e 
 hi String ctermfg=Red guifg=#ff0000
-
+hi CursorLine guibg=#555555
 
 hi PreProc guifg=#0037da
 
