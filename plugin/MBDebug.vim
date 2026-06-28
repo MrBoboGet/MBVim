@@ -188,9 +188,9 @@ function s:FixedExePath(ExeToCheck)
     else
         let Paths = split($PATH,":")
     endif
+    call add(Paths,getcwd() .. "/")
 
     for Path in Paths
-        let Path = Path .. "/"
         if(getfsize(Path .. a:ExeToCheck) != -1)
             return Path .. a:ExeToCheck
         elseif(getfsize(Path .. a:ExeToCheck .. ".exe") != -1)
@@ -212,11 +212,12 @@ function s:DebugProcess(...) abort
         echo "No executable with name '" .. ExtraArguments[0] .. "' found"
         return
     endif
+    echo ProgramPath
     let ProgramArguments = ExtraArguments[1:a:0]
     call vimspector#LaunchWithConfigurations(#{
                 \    Launch: 
                 \    #{
-                \      adapter: "gdb-dap",
+                \      adapter: "lldb-dap",
                 \      filetypes: [ "cpp", "c", "objc", "rust" ], 
                 \      configuration: 
                 \      #{
@@ -226,80 +227,41 @@ function s:DebugProcess(...) abort
                 \        cwd: getcwd(),
                 \        environment: [],
                 \        stopOnEntry: v:true,
-                \        stopAtEntry: v:true,
-                \        externalConsole: v:false,
-                \        MIMode: "gdb",
-                \        setupCommands: [
-                \          #{
-                \            description: "Enable pretty-printing for gdb",
-                \            text: "-enable-pretty-printing",
-                \            ignoreFailures: v:true
-                \          },
-                \          #{
-                \              description: "bruh",
-                \              text: "-exec break main",
-                \              ignoreFailures: v:true
-                \          },
-                \          #{
-                \            description: "Break abort",
-                \            text: "-exec break abort",
-                \            ignoreFailures: v:true
-                \          },
-                \          #{
-                \            description: "Break terminate",
-                \            text: "-exec break terminate",
-                \            ignoreFailures: v:true
-                \          }
-                \        ]
+                \        console: "integratedTerminal",
                 \      }
                 \}
                 \})
+    
 endfunction
 function s:AttachProcess(Program,PID) abort
     let ProgramPath = s:FixedExePath(a:Program)
     if(ProgramPath == "")
-        echo "No executable with name '" .. ExtraArguments[0] .. "' found"
+        echo "No executable with name '" .. a:Program .. "' found"
         return
     endif
-    call vimspector#LaunchWithConfigurations(#{
+
+    let config = #{
                 \    attach: 
                 \    #{
-                \      adapter: "vscode-cpptools",
+                \      adapter: "lldb-dap",
                 \      filetypes: [ "cpp", "c", "objc", "rust" ], 
                 \      configuration: 
                 \      #{
                 \        request: "attach",
                 \        program: ProgramPath,
-                \        stopOnEntry: v:true,
-                \        stopAtEntry: v:true,
-                \        processId: a:PID,
-                \        externalConsole: v:false,
-                \        MIMode: "gdb",
-                \        setupCommands: [
-                \          #{
-                \            description: "Enable pretty-printing for gdb",
-                \            text: "-enable-pretty-printing",
-                \            ignoreFailures: v:true
-                \          },
-                \          #{
-                \              description: "bruh",
-                \              text: "-exec break main",
-                \              ignoreFailures: v:true
-                \          },
-                \          #{
-                \            description: "Break abort",
-                \            text: "-exec break abort",
-                \            ignoreFailures: v:true
-                \          },
-                \          #{
-                \            description: "Break terminate",
-                \            text: "-exec break terminate",
-                \            ignoreFailures: v:true
-                \          }
-                \        ]
+                \        console: "integratedTerminal",
+                \        pid: str2nr(a:PID)
                 \      }
                 \}
-                \})
+                \}
+    "echo config
+    "py3 print(vim.eval( 'config' ) )
+    "py3 print( json.loads( vim.eval( 'json_encode(config)' ) ) )
+    "echo py3eval("print(dict(config))",#{config: config})
+    "echo py3eval("config",#{config: config})
+    "echo py3eval("config",#{config: json_encode(config)})
+    "echo py3eval("json.loads(config)",#{config: json_encode(config)})
+    call vimspector#LaunchWithConfigurations(config)
 endfunction
 
 command! -nargs=+ MBDebug call <SID>DebugProcess(<f-args>)

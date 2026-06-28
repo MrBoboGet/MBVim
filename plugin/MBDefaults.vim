@@ -124,4 +124,10 @@ vmap <s-b> 5k
 nmap ; @@
 
 
+nmap <c-y> :CocList --normal -A grep 
+nmap <space>y :CocListResume<CR>
+
+
 colorscheme MBScheme
+
+set fillchars=vert:\|,fold:-,eob:~,lastline:@,diff:\ 

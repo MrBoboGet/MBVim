@@ -41,6 +41,7 @@ hi CocSemTypeNamespace  ctermfg=white guifg=white
 hi CocSemTypeMacro guifg=#a600c3
 hi CocSemTypeBoolean guifg=#0000FF
 
+hi CocSemTypeBoolean guifg=#0000FF
 
 hi clear cConditional 
 hi link cConditional Statement
@@ -53,6 +54,12 @@ hi Normal ctermbg=Black guibg=#000000
 
 hi link vimFunction Function
 
+
+hi DiffAdd guibg=#004400
+hi DiffDelete guibg=#440000
+hi DiffChange guibg=#333300
+hi DiffTextAdd guibg=#005500
+hi DiffText guibg=#770077
 
 hi link ConId CocSemMacro
 " vim: sw=2
