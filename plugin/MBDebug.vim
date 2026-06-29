@@ -7,16 +7,25 @@ nmap <c-c> <plug>VimspectorContinue
 
 let s:launchConfigGetters = {}
 
-function! CppLaunchSettings(path)
-    let dir = fnamemodify(a:path,":h")
-    let path = substitute(simplify(resolve(a:path)),"\\","/","g")
-    while getftype(dir .. "/MBSourceInfo.json") == ""
-        let newDir = fnamemodify(dir,":h")
-        if newDir == dir
-            throw "No MBSourceInfo.json in parent directories"
+function! MBSourceLaunchSettings(path)
+
+endfunction
+
+function! GetParentConfig(target_path,config_name) abort
+    let currentDir = a:target_path
+    while getftype(currentDir .. "/" .. "MBSourceInfo.json") == ""
+        let newDir = fnamemodify(currentDir,":h")
+        if newDir == currentDir
+            return ""
         endif
+        let currentDir = newDir
     endwhile
-    let sourceInfo = readfile(dir .. "/MBSourceInfo.json")->reduce({a,b -> a .. b})->json_decode()
+    return currentDir
+endfunction
+
+
+function! GetMBLaunchSettings(sourceInfoDir)
+    let sourceInfo = readfile(a:sourceInfoDir .. "/MBSourceInfo.json")->reduce({a,b -> a .. b})->json_decode()
     let targets = sourceInfo["Targets"]
     let programName = ""
     for key in keys(targets)
@@ -55,20 +64,121 @@ function! CppLaunchSettings(path)
         \      }
 endfunction
 
+let t:CurrentCMakeTarget = ""
+
+function! GetCMakeTargets() abort
+    let ret = {}
+    let reply_dir = cmake#GetInfo().build_dir .. "/.cmake/api/v1/reply/"
+    let targets = glob(reply_dir .. "target*",v:false,v:true)
+    for target_file in targets
+        let target = readfile(target_file)->reduce({a,b -> a .. b})->json_decode()
+        if target.type == "EXECUTABLE"
+            let ret[target.name] = target
+        endif
+    endfor
+    return ret
+endfunction
+
+
+function! SetCMakeTarget(value)
+    let t:CurrentCMakeTarget = a:value
+endfunction
+
+
+def SelectCMakeTarget()
+    var current_filter = ""
+    var original_list = g:GetCMakeTargets()->keys()
+    var current_list = original_list
+    popup_menu(g:GetCMakeTargets()->keys(), {
+        callback: (_, target) => { 
+            g:SetCMakeTarget(current_list[target - 1]) 
+        },
+        filter: (id, key) => {
+            if key == 'j' || key == 'k' || key == ' ' || key == "\<Enter>" || key == "\<CR>"
+                return popup_filter_menu(id, key)
+            endif
+            if !(charclass(key) <= 2) || char2nr(key[0]) == 0x80
+                return true
+            endif
+            echom key
+            echom charclass(key)
+            echom char2nr(key[0])
+            if current_filter->len() > 0 && key == "\<BS>"
+                current_filter = current_filter[0 : (len(current_filter) - 2)]
+            else
+                current_filter = current_filter .. key
+            endif
+            current_list = original_list->filter( (i, s) => s->match(current_filter) != -1)
+            popup_settext(id, current_list)
+            return true
+        }
+    })
+enddef
+defcompile
+
+function! GetCMakeLaunchSettings() abort
+    let targets = GetCMakeTargets()
+    if !exists("t:CurrentCMakeTarget")
+        throw "No cmake target set"
+        return #{}
+    endif
+    let target_path = targets[t:CurrentCMakeTarget].nameOnDisk
+    if !isabsolutepath(target_path)
+        let target_path = cmake#GetInfo().build_dir .. "/" .. target_path
+    endif
+    let vimspector_dir = GetParentConfig(target_path,".vimspector.json")
+    if vimspector_dir == ""
+        return #{
+                \    Launch: 
+                \    #{
+                \      adapter: "lldb-dap",
+                \      filetypes: [ "cpp", "c", "objc", "rust" ], 
+                \      configuration: 
+                \      #{
+                \        request: "launch",
+                \        program: target_path,
+                \        args: [],
+                \        cwd: getcwd(),
+                \        environment: [],
+                \        stopOnEntry: v:true,
+                \        console: "integratedTerminal",
+                \      }
+                \}
+                \}
+    endif
+    let vimspector_conf = readfile(a:sourceInfoDir .. "/.vimspector.json")->reduce({a,b -> a .. b})->json_decode()
+    let base_config = vimspector.configurations[vimspector.configurations->keys()[0]]
+    let base_config.configuration.program = target_path
+    return base_config
+endfunction
+
+function! CppLaunchSettings(path) abort
+    let dir = fnamemodify(a:path,":h")
+    let path = substitute(simplify(resolve(a:path)),"\\","/","g")
+    let sourceInfoDir = GetParentConfig(dir,"MBSourceInfo.json")
+    if(sourceInfoDir != "")
+        return GetMBLaunchSettings(sourceInfoDir)
+    endif
+    if(getftype(cmake#GetInfo().build_dir) != "")
+        return GetCMakeLaunchSettings()
+    endif
+    return #{}
+endfunction
+
 function! RegisterLaunchSettingsGetter(fileType,Func)
     let s:launchConfigGetters[a:fileType] = a:Func
 endfunction
 
 call RegisterLaunchSettingsGetter("cpp",funcref("CppLaunchSettings"))
 
-function! s:getLangConfig()
+function! s:getLangConfig() abort
     let CurrentLang = &filetype
     let ConfigGetter = ""
     let launchConfig = #{}
     if has_key(s:launchConfigGetters,CurrentLang)
         let ConfigGetter = s:launchConfigGetters[CurrentLang]
         let launchConfig = ConfigGetter(expand("%:p"))
-        echo launchConfig
+        return launchConfig
     endif
     if CurrentLang == "mblisp"
         return #{
@@ -131,19 +241,24 @@ function! s:getLangConfig()
     return #{}
 endfunction
 
-function! s:startDebug()
+function! s:startDebug() abort
     set signcolumn=yes
     "VimspectorMkSession 
     "call vimspector#ClearBreakpoints()
     "VimspectorLoadSession  
-    if getftype(".vimspector.json") == ""
-        call vimspector#LaunchWithConfigurations(s:getLangConfig())
-    else
-        call vimspector#Launch()
+    let lang_config = s:getLangConfig()
+    if lang_config != #{}
+        call vimspector#LaunchWithConfigurations(lang_config)
+        return
     endif
+    if getftype(".vimspector.json") == ""
+        call vimspector#Launch()
+        return
+    endif
+    throw "No lang config returned a result and no .vimspector.json present"
 endfunction
 
-function! s:stopDebug()
+function! s:stopDebug() abort
     set signcolumn=auto
     call vimspector#Stop()
 endfunction
