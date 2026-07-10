@@ -84,37 +84,42 @@ function! SetCMakeTarget(value)
     let t:CurrentCMakeTarget = a:value
 endfunction
 
+let s:current_filter = ""
+let s:current_list = []
+let s:original_list = []
+function! s:filterList(id,key)
+    let id = a:id
+    let key = a:key
 
-def SelectCMakeTarget()
-    var current_filter = ""
-    var original_list = g:GetCMakeTargets()->keys()
-    var current_list = original_list
-    popup_menu(g:GetCMakeTargets()->keys(), {
-        callback: (_, target) => { 
-            g:SetCMakeTarget(current_list[target - 1]) 
-        },
-        filter: (id, key) => {
-            if key == 'j' || key == 'k' || key == ' ' || key == "\<Enter>" || key == "\<CR>"
-                return popup_filter_menu(id, key)
-            endif
-            if !(charclass(key) <= 2) || char2nr(key[0]) == 0x80
-                return true
-            endif
-            echom key
-            echom charclass(key)
-            echom char2nr(key[0])
-            if current_filter->len() > 0 && key == "\<BS>"
-                current_filter = current_filter[0 : (len(current_filter) - 2)]
-            else
-                current_filter = current_filter .. key
-            endif
-            current_list = original_list->filter( (i, s) => s->match(current_filter) != -1)
-            popup_settext(id, current_list)
-            return true
-        }
-    })
-enddef
-defcompile
+    if key == 'j' || key == 'k' || key == ' ' || key == "\<Enter>" || key == "\<CR>"
+        return popup_filter_menu(id, key)
+    endif
+    if !(charclass(key) <= 2) || char2nr(key[0]) == 0x80
+        return v:true
+    endif
+    echom key
+    echom charclass(key)
+    echom char2nr(key[0])
+    if s:current_filter->len() > 0 && key == "\<BS>"
+        let s:current_filter = s:current_filter[0 : (len(s:current_filter) - 2)]
+    else
+        let s:current_filter = s:current_filter .. key
+    endif
+    let s:current_list = s:original_list->filter( {i, s -> s->match(s:current_filter) != -1})
+    call popup_settext(id, s:current_list)
+    return v:true
+endfunction
+
+
+function! SelectCMakeTarget()
+    let s:original_list = g:GetCMakeTargets()->keys()
+    let s:current_list = s:original_list
+    let s:current_filter = ""
+    call popup_menu(g:GetCMakeTargets()->keys(), #{
+                \    callback: {temp, target ->  g:SetCMakeTarget(s:current_list[target - 1]) },
+                \    filter: {id,key -> s:filterList(id,key) }
+                \})
+endfunction
 
 function! GetCMakeLaunchSettings() abort
     let targets = GetCMakeTargets()
@@ -317,7 +322,7 @@ function s:FixedExePath(ExeToCheck)
 endfunction
 
 
-tmap <BS> <char-0x7f>
+"tmap <BS> <char-0x7f>
 
 
 function s:DebugProcess(...) abort

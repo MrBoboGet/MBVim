@@ -20,8 +20,9 @@ nnoremap Y y$
 nnoremap x "_x
 nnoremap , @@
 
-
-set pastetoggle=<F2>
+if !has("nvim")
+    set pastetoggle=<F2>
+end
 set cpoptions+=I
 
 " work around for windows, vim bug
