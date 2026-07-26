@@ -353,11 +353,20 @@ function s:DebugProcess(...) abort
                 \})
     
 endfunction
-function s:AttachProcess(Program,PID) abort
+function s:AttachProcess(Program,...) abort
     let ProgramPath = s:FixedExePath(a:Program)
     if(ProgramPath == "")
         echo "No executable with name '" .. a:Program .. "' found"
         return
+    endif
+    if a:0 > 0
+        let PID = a:0
+    else
+        let PID = system(["pidof",a:Program])->trim()
+        if len(PID) == 0
+            echo "No executable with name '" .. a:Program .. "' running"
+            return
+        endif
     endif
 
     let config = #{
@@ -370,17 +379,10 @@ function s:AttachProcess(Program,PID) abort
                 \        request: "attach",
                 \        program: ProgramPath,
                 \        console: "integratedTerminal",
-                \        pid: str2nr(a:PID)
+                \        pid: str2nr(PID)
                 \      }
                 \}
                 \}
-    "echo config
-    "py3 print(vim.eval( 'config' ) )
-    "py3 print( json.loads( vim.eval( 'json_encode(config)' ) ) )
-    "echo py3eval("print(dict(config))",#{config: config})
-    "echo py3eval("config",#{config: config})
-    "echo py3eval("config",#{config: json_encode(config)})
-    "echo py3eval("json.loads(config)",#{config: json_encode(config)})
     call vimspector#LaunchWithConfigurations(config)
 endfunction
 
